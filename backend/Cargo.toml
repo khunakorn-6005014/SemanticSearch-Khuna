@@ -8,5 +8,6 @@ axum = "0.7"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-fastembed-rs = "0.1"     # replace true ver
-spfresh = { path = "spfresh" }  # if submodule/local
+fastembed = "5.0.0" # replace true ver
+spfresh = { git= "https://github.com/SPFresh/SPFresh.git", branch= "main", submodules = false}
+

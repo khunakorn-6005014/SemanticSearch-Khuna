@@ -18,8 +18,16 @@ src/
 │   └── reviews.rs
 └── store.rs
 
+• Vector index 
+    ○ Stored in data/reviews.index via spfresh
+    ○ Append-only for new embeddings
+• Metadata file 
+    ○ Stored in data/reviews.jsonl (one JSON object per line)
+    ○ Contains fields like review_title, review_body, product_id, review_rating
+    • Mapping strategy 
+        Relies on insertion order: the Nth vector in the index corresponds to the Nth line in the JSONL
+
 ## TEST
  -POST localhost:8080/reviews
  -POST localhost:8080/search
 
- 
