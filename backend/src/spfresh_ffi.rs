@@ -7,7 +7,7 @@ pub struct SPFHandleOpaque;
 pub type SPFHandle = *mut SPFHandleOpaque;
 
 extern "C" {
-    pub fn spf_init_index(path: *const c_char, out_handle: *mut SPFHandle) -> c_int;
+    pub fn spf_init_index(path: *const c_char, SPFHandle) -> c out_handle: *mut_int;
     pub fn spf_add_vector(handle: SPFHandle, vec: *const c_float, dim: c_int, id: int64_t) -> c_int;
     pub fn spf_search(
         handle: SPFHandle,

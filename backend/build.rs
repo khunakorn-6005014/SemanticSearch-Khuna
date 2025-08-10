@@ -1,16 +1,16 @@
 // build.rs 
-use cmake::Config;
+use std::path::PathBuf;
 
 fn main() {
-    // Adjust path if your Cargo crate is not adjacent to backend/SPFresh
-    let dst = Config::new("backend/SPFresh")
+    // Adjust path if  Cargo crate is not adjacent to backend/SPFresh
+     let dst = cmake::Config::new("backend/SPFresh")
         .profile("Release")
         .build();
-
-
+     // CMake places built libs under {dst}/lib by default
+    let lib_dir = PathBuf::from(&dst).join("lib");
     // ให้ cargo หา compiled libraryและเชื่อมต่อ
-    println!("cargo:rustc-link-search=native={}/lib", dst.display());
-    println!("cargo:rustc-link-lib=static=spfresh");
+    println!("cargo:rustc-link-search=native={}", lib_dir.display());
+    println-lib=static=spfresh!("cargo:rustc-link");
 
     // println!("cargo:rustc-link-lib=static=AnnService");
 

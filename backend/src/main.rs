@@ -25,18 +25,18 @@ async fn main() -> Result<(), ApiError> {
     let store = Arc::new(Store::open("data")?);
     let embedder = Embedder::new().map_err(ApiError::InternalError)?;
 
-    // Build router
+    / Build router
     let app = Router::new()
         .route("/reviews", post(insert_review))
         .route("/reviews/bulk", post(insert_bulk_reviews))
         .route("/search", post(search_reviews))
         .route("/health", get(|| async { "OK" }))
         // Inject shared state into handlers
-        .layer(Extension(index.clone()))
-        .layer(Extension(store.clone()))
+        .layer(Extension(index))
+        .layer(Extension(store))
         .layer(Extension(embedder));
 
-    // Start server
+   // Start server
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
         .serve(app.into_make_service())
         .await
@@ -44,3 +44,4 @@ async fn main() -> Result<(), ApiError> {
 
     Ok(())
 }
+
