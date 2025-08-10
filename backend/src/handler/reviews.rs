@@ -59,14 +59,12 @@ pub struct SearchResult {
 pub async fn insert_review(
     Extension(store): Extension<Arc<Store>>,
     Extension(embedder): Extension<Embedder>,
-    //Extension(index): Extension<Arc<Index>>,
+    Extension(index): Extension<Arc<Index>>,
     Json(input): Json<ReviewInput>,
 ) -> Result<Json<ApiResponse>, ApiError> {
-    // Basic validation if empty
     if input.title.trim().is_empty() || input.body.trim().is_empty() {
         return Err(ApiError::ValidationError("title/body cannot be empty".into()));
     }
-
        // Generate ID & embed
     let id = store.next_id();
     let meta = ReviewMeta {
@@ -74,12 +72,15 @@ pub async fn insert_review(
         title: input.title.clone(),
         body: input.body.clone(),
     };
+
     let vector = embedder.embed(&format!("{} . {}", meta.title, meta.body));
 
-    // Append and return
-    store
-        .append_review(&vector, &meta)
-        .map_err(ApiError::InternalError)?;
+    // Append to metadata store
+    store.append_review(&vector, &meta).map_err(ApiError::InternalError)?;
+
+    // Append vector to index
+    index.add(&vector, id).map_err(ApiError::InternalError)?;
+
     Ok(Json(ApiResponse { id, success: true }))
 }
 
@@ -88,6 +89,7 @@ pub async fn insert_review(
 pub async fn insert_bulk_reviews(
     Extension(store): Extension<Arc<Store>>,
     Extension(embedder): Extension<Embedder>,
+    Extension(index): Extension<Arc<Index>>,
     Json(BulkReviewInput(items)): Json<BulkReviewInput>,
 ) -> Result<Json<BulkInsertResponse>, ApiError> {
     let mut inserted = 0;
@@ -114,7 +116,14 @@ pub async fn insert_bulk_reviews(
 
         // Append to store
         match store.append_review(&vector, &meta) {
-            Ok(_) => inserted += 1,
+            Ok(_) => {
+                if let Err(e) = index.add(&vector, id) {
+                    failed += 1;
+                    errors.push(format!("item {}: index error {}", i, e));
+                } else {
+                    inserted += 1;
+                }
+            }
             Err(e) => {
                 failed += 1;
                 errors.push(format!("item {}: {}", i, e));
@@ -124,7 +133,6 @@ pub async fn insert_bulk_reviews(
 
     Ok(Json(BulkInsertResponse { inserted, failed, errors }))
 }
-
 
 // POST /search
 pub async fn search_reviews(
